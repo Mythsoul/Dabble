@@ -4,7 +4,11 @@ import cors from "cors";
 import connectPgSimple from "connect-pg-simple";
 import session from "express-session";
 import { Authroutes } from "./routes /authroutes.js";
+import { PostRoutes } from "./routes /postRoutes.js";
 import cookieParser from "cookie-parser";
+import { setupPassport } from './config/passport/passport.js';
+import passport from "passport";
+
 const app = express(); 
 const port = 3000; 
 
@@ -49,6 +53,25 @@ app.use(session({
 
 } ))
 
+app.use(passport.initialize())
+app.use(passport.session())
+
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+})
+
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await Database.query("SELECT * FROM users WHERE id = $1", [id]);
+        done(null, user.rows[0]);
+    } catch (error) {
+        done(error, null);
+    }
+});
+
+
+setupPassport(app);
+
 app.get("/" , (req , res)=>{
     res.send("Hello World")
 })
@@ -58,7 +81,8 @@ app.get("/api/ping" , (req , res)=>{
 })
 
 app.use(Authroutes);
+app.use(PostRoutes);
 
 app.listen(port , ()=>{ 
     console.log("The server is running at port " , port)
-}); 
+});
