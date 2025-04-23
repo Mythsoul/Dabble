@@ -56,20 +56,6 @@ app.use(session({
 app.use(passport.initialize())
 app.use(passport.session())
 
-passport.serializeUser((user, done) => {
-    done(null, user.id);
-})
-
-passport.deserializeUser(async (id, done) => {
-    try {
-        const user = await Database.query("SELECT * FROM users WHERE id = $1", [id]);
-        done(null, user.rows[0]);
-    } catch (error) {
-        done(error, null);
-    }
-});
-
-
 setupPassport(app);
 
 app.get("/" , (req , res)=>{

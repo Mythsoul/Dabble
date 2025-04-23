@@ -76,3 +76,16 @@ export const Login = async(email , password)=> {
 
 }
 
+
+
+export const getUserInfo = async (user_id) => { 
+    try { 
+       const response = await Database.query("select * from users where id = $1" , [user_id]); 
+        delete response.rows[0].password ;
+        delete response.rows[0].email ; 
+        
+       return response.rows[0];
+    } catch (error) { 
+        throw new Error(error); 
+    }
+}

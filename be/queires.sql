@@ -19,3 +19,17 @@ CREATE TABLE users (
   password VARCHAR(255) NOT NULL
 );
 
+
+
+-- Posts table : > 
+CREATE TABLE posts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  content TEXT NOT NULL,
+  user_id UUID NOT NULL,
+  image_url VARCHAR(255),
+  likers_id UUID[] NOT NULL,
+  comments JSONB[] NOT NULL,
+
+  
+);
