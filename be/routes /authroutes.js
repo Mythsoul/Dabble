@@ -1,7 +1,7 @@
 import express from "express"   
 import passport from 'passport';
 import { LoginUser, logout, RegisterUser } from "../controllers/Authcontroller.js"
-import { preventAuthenticatedAccess, preventlogout } from "../middlewares/Authmiddleware.js";
+import { Authmiddleware, preventAuthenticatedAccess, preventlogout } from "../middlewares/Authmiddleware.js";
 import { JwtGenerator } from "../models/authmodel.js";
 const router = express.Router();
 
@@ -54,5 +54,29 @@ router.get('/api/auth/google/callback',
     res.redirect(process.env.FE_URL);
   }
 );
+
+
+
+// verify auth 
+
+router.get("/api/auth/verify", Authmiddleware, async (req, res) => {
+  try {
+    if (req.session.user) {
+      return res.status(200).json({
+        success: true,
+        user: req.session.user
+      });
+    }
+    res.status(401).json({
+      success: false,
+      message: "Unauthorized"
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+  }
+}); 
 
 export const Authroutes = router;

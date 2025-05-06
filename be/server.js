@@ -19,15 +19,17 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 
-// app.use(cors( 
-//     { 
-//         origin : ["http://localhost:5173"] , 
-//         credentials : true , 
-//         methods : ["GET" , "POST" , "PUT" , "DELETE"] , 
-//         allowedHeaders : ["Content-Type" , "Authorization"], 
+app.use(cors( 
+    { 
+        origin : (origin, callback) => {
+            callback(null, true);
+        },
+        credentials : true , 
+        methods : ["GET" , "POST" , "PUT" , "DELETE"] , 
+        allowedHeaders : ["Content-Type" , "Authorization"], 
         
-//     }
-// ))
+    }
+))
 
 const pgSession = connectPgSimple(session); 
 
@@ -47,7 +49,8 @@ app.use(session({
         maxAge : 1000 * 60 * 60 * 24 * 1, // 1 Day  
         secure : process.env.NODE_ENV === "production" , 
         httpOnly : true, 
-        sameSite : "none"  
+        sameSite : process.env.NODE_ENV === "production" ? "none" : "lax" , 
+        path : "/" ,
       }
      
 
