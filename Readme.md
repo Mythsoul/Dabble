@@ -54,5 +54,5 @@ Dabble is a modern social media platform built with React and Node.js, featuring
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/dabble.git
+git clone https://github.com/Mythsoul/Dabble.git
 cd dabble
