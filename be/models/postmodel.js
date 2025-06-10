@@ -2,10 +2,10 @@ import dotenv from "dotenv"
 import { Database } from "../config/db/db.js";
 dotenv.config();
 
-export const makePost = async (title, content, user_id, image_url = null) => {
+export const makePost = async (title, content, user_id, image_url = null , username) => {
     // Validate required fields
-    if (!title?.trim() || !content?.trim() || !user_id) {
-        throw new Error("Title, content and user ID are required");
+    if (!title?.trim() || !content?.trim() || !user_id || !username) {
+        throw new Error("Title, content, user ID and username are required");
     }
 
     // Validate content length
@@ -20,8 +20,8 @@ export const makePost = async (title, content, user_id, image_url = null) => {
 
     try {
         const query = `
-            INSERT INTO posts (title, content, user_id, image_url, likers_id, comments) 
-            VALUES ($1, $2, $3, $4, $5, $6) 
+            INSERT INTO posts (title, content, user_id, image_url, likers_id, comments, username) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7) 
             RETURNING *
         `;
         
@@ -30,8 +30,10 @@ export const makePost = async (title, content, user_id, image_url = null) => {
             content,
             user_id,
             image_url,
+
             [], // Empty array for likers_id
-            [] // Empty array for comments
+            [], // Empty array for comments
+            username // Added username
         ];
 
         const response = await Database.query(query, values);
@@ -108,3 +110,22 @@ export const addComment = async (post_id, user_id, comment) => {
         throw new Error(`Failed to add comment: ${error.message}`);
     }
 }
+
+export const getPost = async () => { 
+ try { 
+    const response = await Database.query("Select * from posts");
+    return response.rows;
+ } catch (error) {
+    throw new Error(`Failed to fetch posts: ${error.message}`); 
+ } 
+ }
+
+ export const getUserPosts = async (user_id) => { 
+    try { 
+        const response = await Database.query("SELECT * FROM posts WHERE user_id = $1", [user_id]);
+        return response.rows;
+    } catch (error) {
+        throw new Error(`Failed to fetch user posts: ${error.message}`); 
+    }    
+    
+ } 

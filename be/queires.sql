@@ -29,7 +29,27 @@ CREATE TABLE posts (
   user_id UUID NOT NULL,
   image_url VARCHAR(255),
   likers_id UUID[] NOT NULL,
-  comments JSONB[] NOT NULL,
+  comments JSONB[] NOT NULL
+);
 
-  
+
+-- Notifications table
+CREATE TABLE notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+    user_id UUID NOT NULL REFERENCES users(id),
+    type VARCHAR(50) NOT NULL, -- 'like', 'comment', 'follow', etc.
+    content TEXT NOT NULL,
+    from_user_id UUID REFERENCES users(id),
+    post_id UUID REFERENCES posts(id),
+    is_read BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Bookmarks table
+CREATE TABLE bookmarks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+    user_id UUID NOT NULL REFERENCES users(id),
+    post_id UUID NOT NULL REFERENCES posts(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, post_id)
 );
