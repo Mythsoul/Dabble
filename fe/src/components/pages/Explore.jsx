@@ -1,6 +1,41 @@
-import React from "react"
+import React, { useState, useEffect } from "react"
+import axios from "axios"
+import { Postcard } from "../ui/Postcard"
 
 function Explore() {
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState([])
+  const [isSearching, setIsSearching] = useState(false)
+
+  const handleSearch = async (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/posts/search?q=${query}`,
+        { withCredentials: true }
+      );
+      setSearchResults(response.data.posts);
+    } catch (error) {
+      console.error("Search error:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleSearch(searchQuery);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Explore</h1>
@@ -14,11 +49,27 @@ function Explore() {
         </div>
         <input 
           type="search" 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
           className="block w-full p-3 pl-10 text-sm rounded-full bg-accent/30 border-none focus:ring-2 focus:ring-blue-500 outline-none" 
           placeholder="Search Dabble" 
         />
       </div>
-      
+
+      {/* Search Results */}
+      {searchQuery && (
+        <div className="mb-6">
+          <h2 className="text-xl font-bold mb-4">Search Results</h2>
+          {isSearching ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin h-6 w-6 border-2 border-blue-500 rounded-full border-t-transparent"></div>
+            </div>
+          ) : (
+            <Postcard posts={searchResults} />
+          )}
+        </div>
+      )}
+
       {/* Trending topics */}
       <div className="bg-accent/30 rounded-xl p-4 mb-6">
         <h2 className="font-bold text-xl mb-4">Trends for you</h2>

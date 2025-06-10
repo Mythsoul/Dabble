@@ -1,13 +1,43 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
+import axios from "axios"
 
 function Notifications() {
-  const notificationTypes = [
-    { type: "like", user: "User1", content: "liked your post", time: "2h" },
-    { type: "follow", user: "User2", content: "followed you", time: "5h" },
-    { type: "mention", user: "User3", content: "mentioned you in a post", time: "1d" },
-    { type: "repost", user: "User4", content: "reposted your post", time: "2d" },
-    { type: "like", user: "User5", content: "liked your post", time: "3d" },
-  ]
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/notifications`,
+          { withCredentials: true }
+        );
+        setNotifications(response.data.notifications);
+        console.log(response.data.notifications);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
+  const markAsRead = async (notificationId) => {
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_BACKEND_URL}/api/notifications/${notificationId}/read`,
+        {},
+        { withCredentials: true }
+      );
+      setNotifications(prev => 
+        prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
+      );
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
+  };
 
   const getIcon = (type) => {
     switch (type) {
@@ -48,18 +78,30 @@ function Notifications() {
     }
   }
 
+  if (loading) {
+    return <div className="flex justify-center py-8">
+      <div className="animate-spin h-8 w-8 border-b-2 border-blue-500"></div>
+    </div>;
+  }
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Notifications</h1>
       
       <div className="space-y-1">
-        {notificationTypes.map((notification, index) => (
-          <div key={index} className="flex gap-3 p-4 hover:bg-accent/30 transition-colors rounded-lg cursor-pointer">
+        {notifications.map((notification) => (
+          <div 
+            key={notification.id}
+            onClick={() => markAsRead(notification.id)}
+            className={`flex gap-3 p-4 hover:bg-accent/30 transition-colors rounded-lg cursor-pointer ${
+              !notification.is_read ? 'bg-accent/10' : ''
+            }`}
+          >
             {getIcon(notification.type)}
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-blue-500 flex-shrink-0 flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">{notification.user[0]}</span>
+                  <span className="text-white font-bold text-xs">{notification.from_username.charAt(0).toUpperCase()}</span>
                 </div>
                 <div>
                   <p>
@@ -72,9 +114,15 @@ function Notifications() {
             </div>
           </div>
         ))}
+
+        {notifications.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">
+            No notifications yet
+          </div>
+        )}
       </div>
     </div>
-  )
+  );
 }
 
-export default Notifications
+export default Notifications;
